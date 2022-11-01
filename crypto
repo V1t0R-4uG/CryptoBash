@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+RED='\033[0;31m'
+NC='\033[0m'
+trap 'echo -e "\n${RED}O Usuario interrompeu o programa!${NC}"; exit 1' SIGINT
+
+declare -A cryptos
+cryptos["Bitcoin"]="Qwsogvtv82FCd"
+cryptos["Ethereum"]="razxDUgYGNAdQ"
+cryptos["Cardano"]="qzawljRxB5bYu"
+cryptos["Solana"]="zNZHO_Sjf"
+cryptos["Litecoin"]="D7B1x_ks7WhV5"
+cryptos["Vechain"]="FEbS54wxo4oIl"
+cryptos["Theter"]="HIVsRcGKkPFtW"
+cryptos["Polygon"]="uW2tk-ILY0ii"
+cryptos["BNB"]="WcwrkfNI4FUAe"
+cryptos["Grafico"]=0
+
+crytpoOptions=`tr ' ' '\n' <<< ${!cryptos[@]}`
+select=`printf "$crytpoOptions" | fzf --reverse --border` 
+
+echo $select
+
+key=$(cat .key)
+
+getAllCoins() {
+	# Get all the coins and write in a file
+	local pricesAndNames=$(curl -s --request GET \
+    --url 'https://coinranking1.p.rapidapi.com/coins?referenceCurrencyUuid=yhjMzLPhuIDl&timePeriod=24h&tiers%5B0%5D=1&orderBy=marketCap&orderDirection=desc&limit='$1'&offset=0' \
+		--header 'X-RapidAPI-Host: coinranking1.p.rapidapi.com' \
+		--header 'X-RapidAPI-Key: '$key'' | jq '.data.coins[] | "\(.name);\(.price)"')
+	echo "$pricesAndNames" | tr -d \" > inputCrypto.dat
+}
+
+# Validating if the array contains the selected coin option
+if [[ ! " ${!cryptos[*]} " =~ " ${select} " ]]; then
+	printf "✘ A moeda escolhida não está disponivel, tente novamente... " 2> /dev/null
+	exit 1
+elif [[ $select == "Grafico" ]]; then
+	echo ""
+	read -p $'\e[0;33mEscolha a quantidade de cryptos que você deseja ver\e[0m: (2-100): ' qtd
+	echo $qtd
+	if [ $qtd -gt 100 ] || [ $qtd -lt 2 ]; then
+		echo "Somente números de 2 a 100 são permitidos. Tente novamente"
+		exit 1
+	fi
+	getAllCoins $qtd
+	termgraph --delim ';' inputCrypto.dat --suffix ' $' --width 40
+	rm -f inputCrypto.dat
+	exit 0
+else
+	selected=`echo ${cryptos["$select"]}`
+	json_crypto_data=$(curl -s --request GET \
+		--url 'https://coinranking1.p.rapidapi.com/coin/'$selected'?timePeriod=24h' \
+		--header 'X-RapidAPI-Host: coinranking1.p.rapidapi.com' \
+		--header 'X-RapidAPI-Key: 54ac391136msh164c82774f80ec0p1abda6jsn56a4d96ace4d')
+
+	price_USD=$(echo $json_crypto_data | jq -r ".data.coin.price")
+	price_BTC=$(echo $json_crypto_data | jq -r ".data.coin.btcPrice")
+
+	echo ""
+	echo "$select price in BTC ::   $price_BTC"
+	echo "$select price in USD :: $ $price_USD"
+	echo ""
+	exit 0 
+fi
+
+## TERM GRAPH COM AS CRYPTOS ##
