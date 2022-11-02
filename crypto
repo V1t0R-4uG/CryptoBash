@@ -2,7 +2,7 @@
 
 RED='\033[0;31m'
 NC='\033[0m'
-trap 'echo -e "\n${RED}O Usuario interrompeu o programa!${NC}"; exit 1' SIGINT
+trap 'echo -e "\n${RED}User interruption !${NC}"; exit 1' SIGINT
 
 declare -A cryptos
 cryptos["Bitcoin"]="Qwsogvtv82FCd"
@@ -21,7 +21,7 @@ select=`printf "$crytpoOptions" | fzf --reverse --border`
 
 echo $select
 
-key=$(cat .key)
+key=$(cat ~/.key)
 
 getAllCoins() {
 	# Get all the coins and write in a file
@@ -34,14 +34,14 @@ getAllCoins() {
 
 # Validating if the array contains the selected coin option
 if [[ ! " ${!cryptos[*]} " =~ " ${select} " ]]; then
-	printf "✘ A moeda escolhida não está disponivel, tente novamente... " 2> /dev/null
+	printf "✘ The chosen currency is not available ... " 2> /dev/null
 	exit 1
 elif [[ $select == "Grafico" ]]; then
 	echo ""
-	read -p $'\e[0;33mEscolha a quantidade de cryptos que você deseja ver\e[0m: (2-100): ' qtd
+	read -p $'\e[0;33mEnter how many coins do you want to see\e[0m: (2-100): ' qtd
 	echo $qtd
 	if [ $qtd -gt 100 ] || [ $qtd -lt 2 ]; then
-		echo "Somente números de 2 a 100 são permitidos. Tente novamente"
+		echo -e "${RED}Only numbers between 2 and 100 are allowed.${NC}"
 		exit 1
 	fi
 	getAllCoins $qtd
