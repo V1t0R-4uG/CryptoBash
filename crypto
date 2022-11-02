@@ -14,7 +14,7 @@ cryptos["Vechain"]="FEbS54wxo4oIl"
 cryptos["Theter"]="HIVsRcGKkPFtW"
 cryptos["Polygon"]="uW2tk-ILY0ii"
 cryptos["BNB"]="WcwrkfNI4FUAe"
-cryptos["Grafico"]=0
+cryptos["Graphic"]=0
 
 crytpoOptions=`tr ' ' '\n' <<< ${!cryptos[@]}`
 select=`printf "$crytpoOptions" | fzf --reverse --border` 
@@ -36,7 +36,7 @@ getAllCoins() {
 if [[ ! " ${!cryptos[*]} " =~ " ${select} " ]]; then
 	printf "✘ The chosen currency is not available ... " 2> /dev/null
 	exit 1
-elif [[ $select == "Grafico" ]]; then
+elif [[ $select == "Graphic" ]]; then
 	echo ""
 	read -p $'\e[0;33mEnter how many coins do you want to see\e[0m: (2-100): ' qtd
 	echo $qtd
