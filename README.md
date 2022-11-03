@@ -1,4 +1,4 @@
-# Bash Crypto
+# Crypto Bash
 
 A command line tool that shows crypto currency information in a friendly way.
 
