@@ -1,4 +1,4 @@
-# Bash Crypto
+# Crypto Bash
 
 A command line tool that shows crypto currency information in a friendly way.
 
@@ -17,7 +17,7 @@ Before start, make sure you have the following requirements:
 * Account on [RapidAPI](rapidapi.com).
 * Subscribed at [Coin Ranking](https://rapidapi.com/Coinranking/api/coinranking1/).
 
-## 🚀 Installing Bash Crypto
+## 🚀 Installing Crypto Bash
 
 ```
 git clone https://github.com/V1t0R-4uG/CryptoBash
