@@ -4,7 +4,8 @@ A command line tool that shows crypto currency information in a friendly way.
 
 ## Examples
 
-<img src="exemplo-image.png" alt="exemplo imagem">
+
+https://user-images.githubusercontent.com/103333660/201532183-ccbebafd-0e43-42c4-8060-a366040ada0a.mp4
 
 ## 💻 Requirements
 
