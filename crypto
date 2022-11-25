@@ -59,7 +59,6 @@ else
 	price_BTC=$(echo $json_crypto_data | jq -r ".data.coin.btcPrice")
 
 	echo ""
-	#formated_price=$(echo $price_USD | awk '{printf "$%.2f",$1}')
 	echo "$select price in BTC ::   $price_BTC"
 	LC_ALL=C printf "$select price in USD :: $%.2f\n" "$price_USD"
 	echo ""
