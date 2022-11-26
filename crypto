@@ -1,66 +1,66 @@
 #!/usr/bin/env bash
 
-RED='\033[0;31m'
-NC='\033[0m'
-trap 'echo -e "\n${RED}User interruption !${NC}"; exit 1' SIGINT
+trap 'echo -e "\n${RED}User interruption !${NC}\n"; exit 1' SIGINT
 
-declare -A cryptos
-cryptos["Bitcoin"]="Qwsogvtv82FCd"
-cryptos["Ethereum"]="razxDUgYGNAdQ"
-cryptos["Cardano"]="qzawljRxB5bYu"
-cryptos["Solana"]="zNZHO_Sjf"
-cryptos["Litecoin"]="D7B1x_ks7WhV5"
-cryptos["Vechain"]="FEbS54wxo4oIl"
-cryptos["Theter"]="HIVsRcGKkPFtW"
-cryptos["Polygon"]="uW2tk-ILY0ii"
-cryptos["BNB"]="WcwrkfNI4FUAe"
-cryptos["Graphic"]=0
+api_key=$(cat ~/.key)
 
-crytpoOptions=`tr ' ' '\n' <<< ${!cryptos[@]}`
-select=`printf "$crytpoOptions" | fzf --reverse --border` 
+select=$(cat ./crypto_id | fzf -i --border --black)
 
-echo $select
+if [[ $select == '' ]]; then
+  exit 1;
+fi
+echo ""
+printf "        \033[0;31m$select\e[0m \n"
 
-key=$(cat ~/.key)
-
-getAllCoins() {
-	# Get all the coins and write in a file
-	local pricesAndNames=$(curl -s --request GET \
-    --url 'https://coinranking1.p.rapidapi.com/coins?referenceCurrencyUuid=yhjMzLPhuIDl&timePeriod=24h&tiers%5B0%5D=1&orderBy=marketCap&orderDirection=desc&limit='$1'&offset=0' \
-		--header 'X-RapidAPI-Host: coinranking1.p.rapidapi.com' \
-		--header 'X-RapidAPI-Key: '$key'' | jq '.data.coins[] | "\(.name);\(.price)"')
-	echo "$pricesAndNames" | tr -d \" > inputCrypto.dat
+getAllDataByID() {
+   curl -s --request GET \
+	--url 'https://coingecko.p.rapidapi.com/coins/'$select'?localization=true&tickers=true&market_data=true&community_data=true&developer_data=true&sparkline=false' \
+	--header 'X-RapidAPI-Host: coingecko.p.rapidapi.com' \
+	--header 'X-RapidAPI-Key: '$api_key''
 }
 
-# Validating if the array contains the selected coin option
-if [[ ! " ${!cryptos[*]} " =~ " ${select} " ]]; then
-	printf "✘ The chosen currency is not available ... " 2> /dev/null
-	exit 1
-elif [[ $select == "Graphic" ]]; then
-	echo ""
-	read -p $'\e[0;33mEnter how many coins do you want to see\e[0m: (2-100): ' qtd
-	echo $qtd
-	if [ $qtd -gt 100 ] || [ $qtd -lt 2 ]; then
-		echo -e "${RED}Only numbers between 2 and 100 are allowed.${NC}"
-		exit 1
-	fi
-	getAllCoins $qtd
-	termgraph --delim ';' inputCrypto.dat --suffix ' $' --width 40
-	rm -f inputCrypto.dat
-	exit 0
-else
-	selected=`echo ${cryptos["$select"]}`
-	json_crypto_data=$(curl -s --request GET \
-		--url 'https://coinranking1.p.rapidapi.com/coin/'$selected'?timePeriod=24h' \
-		--header 'X-RapidAPI-Host: coinranking1.p.rapidapi.com' \
-		--header 'X-RapidAPI-Key: 54ac391136msh164c82774f80ec0p1abda6jsn56a4d96ace4d')
+coinData=$(getAllDataByID)
 
-	price_USD=$(echo $json_crypto_data | jq -r ".data.coin.price")
-	price_BTC=$(echo $json_crypto_data | jq -r ".data.coin.btcPrice")
+getCurrentPriceInUSD() {
+  echo $coinData | jq '.market_data.current_price.usd'
+}
 
-	echo ""
-	echo "$select price in BTC ::   $price_BTC"
-	LC_ALL=C printf "$select price in USD :: $%.2f\n" "$price_USD"
-	echo ""
-	exit 0 
+getCurrentPriceInBTC() {
+  echo $coinData | jq '.market_data.current_price.btc'
+}
+
+getMarketCap() {
+  echo $coinData | jq '.market_data.market_cap.usd'
+}
+
+get24hVolume() {
+  echo $coinData | jq '.market_data.total_volume.usd'
+}
+
+getCirculatingSupply() {
+  echo $coinData | jq '.market_data.circulating_supply'
+}
+
+getMaxSupply() {
+  echo $coinData | jq '.market_data.max_supply'
+}
+
+priceInUSD=$(getCurrentPriceInUSD)
+priceInBTC=$(getCurrentPriceInBTC)
+marketCap=$(getMarketCap)
+volumeInLast24h=$(get24hVolume)
+circulatingSupplu=$(getCirculatingSupply)
+maxSupply=$(getMaxSupply)
+
+echo ""
+LC_ALL=C printf "price in BTC :: \e[0;33m  %.7f\n\e[0m" "$priceInBTC"
+LC_ALL=C printf "price in USD :: \e[0;33m$ %.2f\n\e[0m" "$priceInUSD"
+LC_ALL=C printf "Market cap :: \e[0;33m$ %.2f\n\e[0m" "$marketCap"
+LC_ALL=C printf "volume in the last 24h :: \e[0;33m$ %.2f\n\e[0m" "$volumeInLast24h"
+LC_ALL=C printf "Circulating Supply :: \e[0;33m$ %.2f\n\e[0m" "$circulatingSupplu"
+if [[ $maxSupply -ne 'null' ]];then
+  LC_ALL=C printf "Max Supply :: \e[0;33m$ %.2f\n\e[0m" "$maxSupply"
 fi
+echo ""
+
+exit 0
